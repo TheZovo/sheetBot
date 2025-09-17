@@ -29,7 +29,7 @@ async def get_photo(message: Message, state: FSMContext):
     os.makedirs("downloads", exist_ok=True) 
     await message.bot.download_file(file.file_path, file_path) 
     await state.update_data(file_path=file_path) 
-    await message.answer("✅ Фото сохранено!\nТеперь введи ячейку (например: A1):") 
+    await message.answer("✅ Фото сохранено!\nТеперь введи ячейку (например: 123)\n или через запятую в формате: 123,456,789") 
     await state.set_state(UploadStates.waiting_for_cell) 
     
 @router.message(UploadStates.waiting_for_cell)
@@ -50,7 +50,7 @@ async def get_cell(message: Message, state: FSMContext):
 
     await message.answer(
         f"✅ Картинка вставлена в строки {', '.join(rows)} (колонка J).\n"
-        f"Статусы обновлены в колонке K, дата — в колонке L.",
+        f"Статусы обновлены в колонке L, дата — в колонке M.",
         reply_markup=main_kb
     )
     await state.clear()

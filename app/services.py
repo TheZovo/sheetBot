@@ -18,12 +18,10 @@ TOKEN_PATH = os.path.join(BASE_DIR, "token.pickle")
 def get_services():
     creds = None
 
-    # Загружаем токен, если он есть
     if os.path.exists(TOKEN_PATH):
         with open(TOKEN_PATH, "rb") as token:
             creds = pickle.load(token)
 
-    # Если токен недействителен или отсутствует, делаем OAuth flow
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
@@ -53,7 +51,6 @@ def upload_to_drive(file_path: str, filename: str) -> str:
     ).execute()
     file_id = file["id"]
 
-    # Делаем доступным по ссылке
     drive_service.permissions().create(
         fileId=file_id, body={"role": "reader", "type": "anyone"}
     ).execute()
@@ -72,20 +69,20 @@ def insert_image_and_update_status(rows: list[str], image_url: str):
         if not row.isdigit():
             continue
 
-        # Фото вставляем в колонку J
+        # Фото в колонку J
         formula = f'=IMAGE("{image_url}")'
         requests.append({
             "range": f"J{row}",
             "values": [[formula]]
         })
 
-        # Статус в колонку K
+        # Статус в колонку L
         requests.append({
             "range": f"L{row}",
             "values": [["На складе в Китае"]]
         })
 
-        # Дата в колонку L
+        # Дата в колонку M
         requests.append({
             "range": f"M{row}",
             "values": [[today]]
