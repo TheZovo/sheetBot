@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State 
 import os 
 from app.keyboards import main_kb 
-from app.services import insert_image_and_update_status, upload_to_drive, insert_image_into_sheet 
+from app.services import insert_image_and_update_status, upload_to_drive
 
 router = Router() 
 
