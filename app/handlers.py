@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State 
 import os 
 from app.keyboards import main_kb 
-from app.services import upload_to_drive, insert_image_into_sheet 
+from app.services import insert_image_and_update_status, upload_to_drive, insert_image_into_sheet 
 
 router = Router() 
 
@@ -37,17 +37,20 @@ async def get_cell(message: Message, state: FSMContext):
     data = await state.get_data()
     file_path = data["file_path"]
 
-    default_column = "J"
-    row_number = message.text.strip()
-    
-    if not row_number.isdigit():
-        await message.answer("❌ Пожалуйста, введи только номер строки (число).")
+    # Список строк
+    rows = [r.strip() for r in message.text.split(",") if r.strip().isdigit()]
+    if not rows:
+        await message.answer("❌ Введи номера строк через запятую, например: 333,123,124")
         return
 
-    cell = f"{default_column}{row_number}"
-
     image_url = upload_to_drive(file_path, os.path.basename(file_path))
-    insert_image_into_sheet(cell, image_url)
 
-    await message.answer(f"✅ Картинка вставлена в {cell}", reply_markup=main_kb)
+    # Вставляем фото + статус + дату
+    insert_image_and_update_status(rows, image_url)
+
+    await message.answer(
+        f"✅ Картинка вставлена в строки {', '.join(rows)} (колонка J).\n"
+        f"Статусы обновлены в колонке K, дата — в колонке L.",
+        reply_markup=main_kb
+    )
     await state.clear()

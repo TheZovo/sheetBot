@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import mimetypes
 from googleapiclient.discovery import build
@@ -60,16 +61,42 @@ def upload_to_drive(file_path: str, filename: str) -> str:
     return f"https://drive.google.com/uc?id={file_id}"
 
 
-def insert_image_into_sheet(cell: str, image_url: str):
+def insert_image_and_update_status(rows: list[str], image_url: str):
     _, sheets_service = get_services()
 
-    formula = f'=IMAGE("{image_url}")'
-    body = {"values": [[formula]]}
+    today = datetime.now().strftime("%d.%m.%Y")
 
-    sheets_service.spreadsheets().values().update(
+    requests = []
+    for row in rows:
+        row = row.strip()
+        if not row.isdigit():
+            continue
+
+        # Фото вставляем в колонку J
+        formula = f'=IMAGE("{image_url}")'
+        requests.append({
+            "range": f"J{row}",
+            "values": [[formula]]
+        })
+
+        # Статус в колонку K
+        requests.append({
+            "range": f"L{row}",
+            "values": [["На складе в Китае"]]
+        })
+
+        # Дата в колонку L
+        requests.append({
+            "range": f"M{row}",
+            "values": [[today]]
+        })
+
+    body = {
+        "valueInputOption": "USER_ENTERED",
+        "data": requests
+    }
+
+    sheets_service.spreadsheets().values().batchUpdate(
         spreadsheetId=settings.spreadsheet_id,
-        range=cell,
-        valueInputOption="USER_ENTERED",
         body=body
     ).execute()
-
